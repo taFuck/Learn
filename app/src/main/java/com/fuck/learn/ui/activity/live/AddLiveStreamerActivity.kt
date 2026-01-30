@@ -1,7 +1,6 @@
 package com.fuck.learn.ui.activity.live
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -213,6 +212,7 @@ fun AddLiveStreamerScreen(
             }
         }
 
+        val errorMessage = stringResource(R.string.error)
         when (val state = addLiveStreamerUiState) {
             is AddLiveStreamerUiState.Loading -> {
                 // Now handled by the button's state
@@ -235,7 +235,7 @@ fun AddLiveStreamerScreen(
                 LaunchedEffect(state) {
                     Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
                     viewModel.resetAddStreamerState()
-                    LogUtils.e("${context.getString(R.string.error)} ${state.message}")
+                    LogUtils.e("$errorMessage ${state.message}")
                 }
             }
 
