@@ -290,7 +290,7 @@ private fun LivePeopleScreen(
                             Spacer(modifier = Modifier.size(6.dp))
 
                             Text(
-                                text = "Start time:$it",
+                                text = "Start at:$it",
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = 1,
                                 modifier = Modifier.basicMarquee(1)
@@ -362,7 +362,7 @@ private fun LivePeopleScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             item.visits?.let {
                                 Text(
-                                    text = "visits:${NumberUtils.withCommas(it)}",
+                                    text = "Visits:${NumberUtils.withCommas(it)}",
                                     maxLines = 1,
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
