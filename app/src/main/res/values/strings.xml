@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">Learn</string>
+
+    <string name="user_info_label">Query user information</string>
+    <string name="user_info_query">Start query</string>
+    <string name="user_info_stop_query">Stop query</string>
+    <string name="user_info_input_label">Input nickname/Douyin ID/uid/sec_uid</string>
+    <string name="user_info_input_default">74810581616</string>
+    <string name="user_info_uid">Douyin ID:</string>
+
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="long_press_to_copy">Long press the blue item to copy</string>
+
+    <string name="hot_rank_label">hot rank</string>
+
+    <string name="fans_club_label">Query user fans club</string>
+    <string name="fans_club_input_label">User homepage obtained by "query user information"</string>
+    <string name="fans_club_input_default">https://www.douyin.com/user/MS4wLjABAAAAXcusadpsns9kBnsCcbvD8-Xuv2pFqH4X2rs-P2fnw7U</string>
+
+    <string name="add_live_steamer_label">Manage streamer</string>
+    <string name="add_live_steamer_input_label">for example:\nhttps://www.douyin.com/user/MS4wLjABAAAAXcusadpsns9kBsCcbvD8Xuv2pFqH4X2rs-P2fnw7U\n or \nhttps://v.douyin.com/S1pmMvYbzk/</string>
+    <string name="add_live_steamer_input_tip">Url format is wrong</string>
+
+    <string name="live_people_label">Living info</string>
+
+    <string name="delete_history">Delete historical items</string>
+    <string name="clear_input">Clear input</string>
+    <string name="wait">Please wait…</string>
+    <string name="empty">The response is empty</string>
+    <string name="error">Error.</string>
+    <string name="exit">Press again to exit the app</string>
+
+    <string name="content_description_back">Back</string>
+    <string name="content_description_user_image">User avatar</string>
+    <string name="title_activity_query_fans_club_info">QueryFansClubInfoActivity</string>
+    <string name="title_activity_query_fans_club_state_list">QueryFansClubStateListActivity</string>
+    <string name="title_activity_live_info">LiveInfoActivity</string>
+    <string name="title_activity_query_live_people">QueryLivePeopleActivity</string>
+</resources>
