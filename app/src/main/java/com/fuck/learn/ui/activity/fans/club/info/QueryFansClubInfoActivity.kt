@@ -487,6 +487,10 @@ fun UserInfoItem(item: UiUserInfoItem) {
 
 @Composable
 private fun FansClubItemRow(item: UiFansClubItem) {
+    LogUtils.e("""${item.clubName}
+        ${item.levelUrl}
+        ${item.vipUrl}
+    """.trimMargin())
     Row(
         modifier = Modifier
             .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -502,8 +506,6 @@ private fun FansClubItemRow(item: UiFansClubItem) {
             maxLines = 1,
         )
 
-        VerticalDivider()
-
         Text(
             text = item.level ?: "N/FansClubInfoBean",
             textAlign = TextAlign.Center,
@@ -514,7 +516,6 @@ private fun FansClubItemRow(item: UiFansClubItem) {
                 MaterialTheme.colorScheme.onSurface
             }
         )
-        VerticalDivider()
 
         var text = "×"
         if ("\u5df2\u5f00\u901a" == item.vip) {
@@ -530,8 +531,6 @@ private fun FansClubItemRow(item: UiFansClubItem) {
                 MaterialTheme.colorScheme.onSurface
             }
         )
-
-        VerticalDivider()
 
         Text(
             text = item.star ?: "N/FansClubInfoBean",

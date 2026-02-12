@@ -64,7 +64,7 @@ data class FansClubInfoBean(
             @SerializedName("dress_suit_info")
             val dressSuitInfo: DressSuitInfo? = null,
             @SerializedName("profile_tag_content")
-            val profileTagContent: List<ProfileTagContent?>? = null,
+            val profileTagContent: List<Any?>? = null,
             @SerializedName("profile_tag_switch")
             val profileTagSwitch: Int? = null,
             @SerializedName("shop_fans_club")
@@ -222,6 +222,8 @@ data class FansClubInfoBean(
             data class FansClub(
                 @SerializedName("total_fans_count")
                 val totalFansCount: Int? = null,
+                @SerializedName("data")
+                val `data`: Data? = null,
                 @SerializedName("prefer_data")
                 val preferData: PreferData? = null,
                 @SerializedName("total_fans_count_str")
@@ -229,6 +231,83 @@ data class FansClubInfoBean(
                 @SerializedName("total_fans_count_substr")
                 val totalFansCountSubstr: String? = null
             ) {
+                data class Data(
+                    @SerializedName("club_name")
+                    val clubName: String? = null,
+                    @SerializedName("level")
+                    val level: Int? = null,
+                    @SerializedName("user_fans_club_status")
+                    val userFansClubStatus: Int? = null,
+                    @SerializedName("badge")
+                    val badge: Badge? = null,
+                    @SerializedName("available_gift_ids")
+                    val availableGiftIds: List<Any?>? = null,
+                    @SerializedName("anchor_id")
+                    val anchorId: Long? = null,
+                    @SerializedName("anchor_open_id")
+                    val anchorOpenId: String? = null
+                ) {
+                    data class Badge(
+                        @SerializedName("icons")
+                        val icons: Icons? = null,
+                        @SerializedName("title")
+                        val title: String? = null
+                    ) {
+                        data class Icons(
+                            @SerializedName("1")
+                            val x1: X1? = null,
+                            @SerializedName("4")
+                            val x4: X4? = null
+                        ) {
+                            data class X1(
+                                @SerializedName("url_list")
+                                val urlList: List<String?>? = null,
+                                @SerializedName("uri")
+                                val uri: String? = null,
+                                @SerializedName("height")
+                                val height: Int? = null,
+                                @SerializedName("width")
+                                val width: Int? = null,
+                                @SerializedName("avg_color")
+                                val avgColor: String? = null,
+                                @SerializedName("image_type")
+                                val imageType: Int? = null,
+                                @SerializedName("open_web_url")
+                                val openWebUrl: String? = null,
+                                @SerializedName("is_animated")
+                                val isAnimated: Boolean? = null,
+                                @SerializedName("flex_setting_list")
+                                val flexSettingList: List<Any?>? = null,
+                                @SerializedName("text_setting_list")
+                                val textSettingList: List<Any?>? = null
+                            )
+
+                            data class X4(
+                                @SerializedName("url_list")
+                                val urlList: List<String?>? = null,
+                                @SerializedName("uri")
+                                val uri: String? = null,
+                                @SerializedName("height")
+                                val height: Int? = null,
+                                @SerializedName("width")
+                                val width: Int? = null,
+                                @SerializedName("avg_color")
+                                val avgColor: String? = null,
+                                @SerializedName("image_type")
+                                val imageType: Int? = null,
+                                @SerializedName("open_web_url")
+                                val openWebUrl: String? = null,
+                                @SerializedName("is_animated")
+                                val isAnimated: Boolean? = null,
+                                @SerializedName("flex_setting_list")
+                                val flexSettingList: List<Any?>? = null,
+                                @SerializedName("text_setting_list")
+                                val textSettingList: List<Any?>? = null
+                            )
+                        }
+                    }
+                }
+
                 class PreferData
             }
 
@@ -247,13 +326,26 @@ data class FansClubInfoBean(
                 val imageType: Int? = null,
                 @SerializedName("open_web_url")
                 val openWebUrl: String? = null,
+                @SerializedName("content")
+                val content: Content? = null,
                 @SerializedName("is_animated")
                 val isAnimated: Boolean? = null,
                 @SerializedName("flex_setting_list")
                 val flexSettingList: List<Any?>? = null,
                 @SerializedName("text_setting_list")
                 val textSettingList: List<Any?>? = null
-            )
+            ) {
+                data class Content(
+                    @SerializedName("name")
+                    val name: String? = null,
+                    @SerializedName("font_color")
+                    val fontColor: String? = null,
+                    @SerializedName("level")
+                    val level: Int? = null,
+                    @SerializedName("alternative_text")
+                    val alternativeText: String? = null
+                )
+            }
 
             data class AdminInfo(
                 @SerializedName("is_admin")
@@ -313,9 +405,7 @@ data class FansClubInfoBean(
                     @SerializedName("dress_id")
                     val dressId: String? = null,
                     @SerializedName("visitor_button_color")
-                    val visitorButtonColor: String? = null,
-                    @SerializedName("suit_shop_enter_button")
-                    val suitShopEnterButton: SuitShopEnterButton? = null
+                    val visitorButtonColor: String? = null
                 ) {
                     data class AvatarBorder(
                         @SerializedName("url_list")
@@ -530,9 +620,9 @@ data class FansClubInfoBean(
                         @SerializedName("close_interval")
                         val closeInterval: Int? = null,
                         @SerializedName("open_rate_curve")
-                        val openRateCurve: List<Double?>? = null,
+                        val openRateCurve: List<Any?>? = null,
                         @SerializedName("close_rate_curve")
-                        val closeRateCurve: List<Double?>? = null
+                        val closeRateCurve: List<Any?>? = null
                     )
 
                     data class BgUiWebp(
@@ -541,7 +631,7 @@ data class FansClubInfoBean(
                     ) {
                         data class OverallImage(
                             @SerializedName("url_list")
-                            val urlList: List<String?>? = null,
+                            val urlList: List<Any?>? = null,
                             @SerializedName("uri")
                             val uri: String? = null,
                             @SerializedName("height")
@@ -562,17 +652,6 @@ data class FansClubInfoBean(
                             val textSettingList: List<Any?>? = null
                         )
                     }
-
-                    data class SuitShopEnterButton(
-                        @SerializedName("text")
-                        val text: String? = null,
-                        @SerializedName("text_color")
-                        val textColor: String? = null,
-                        @SerializedName("bg_color")
-                        val bgColor: String? = null,
-                        @SerializedName("schema")
-                        val schema: String? = null
-                    )
                 }
             }
 
@@ -605,7 +684,9 @@ data class FansClubInfoBean(
                     @SerializedName("2")
                     val x2: X2? = null,
                     @SerializedName("5")
-                    val x5: X5? = null
+                    val x5: X5? = null,
+                    @SerializedName("7")
+                    val x7: X7? = null
                 ) {
                     data class X1(
                         @SerializedName("gradient_start")
@@ -672,6 +753,38 @@ data class FansClubInfoBean(
                     }
 
                     data class X5(
+                        @SerializedName("gradient_start")
+                        val gradientStart: String? = null,
+                        @SerializedName("gradient_end")
+                        val gradientEnd: String? = null,
+                        @SerializedName("icon")
+                        val icon: Icon? = null
+                    ) {
+                        data class Icon(
+                            @SerializedName("url_list")
+                            val urlList: List<String?>? = null,
+                            @SerializedName("uri")
+                            val uri: String? = null,
+                            @SerializedName("height")
+                            val height: Int? = null,
+                            @SerializedName("width")
+                            val width: Int? = null,
+                            @SerializedName("avg_color")
+                            val avgColor: String? = null,
+                            @SerializedName("image_type")
+                            val imageType: Int? = null,
+                            @SerializedName("open_web_url")
+                            val openWebUrl: String? = null,
+                            @SerializedName("is_animated")
+                            val isAnimated: Boolean? = null,
+                            @SerializedName("flex_setting_list")
+                            val flexSettingList: List<Any?>? = null,
+                            @SerializedName("text_setting_list")
+                            val textSettingList: List<Any?>? = null
+                        )
+                    }
+
+                    data class X7(
                         @SerializedName("gradient_start")
                         val gradientStart: String? = null,
                         @SerializedName("gradient_end")
@@ -819,159 +932,6 @@ data class FansClubInfoBean(
                 }
             }
 
-            data class ProfileTagContent(
-                @SerializedName("bg_color")
-                val bgColor: BgColor? = null,
-                @SerializedName("tag_type")
-                val tagType: Int? = null,
-                @SerializedName("is_bg_picture")
-                val isBgPicture: Boolean? = null,
-                @SerializedName("tag_content")
-                val tagContent: TagContent? = null,
-                @SerializedName("is_click_tag")
-                val isClickTag: Boolean? = null,
-                @SerializedName("schema")
-                val schema: String? = null,
-                @SerializedName("click_buried_point")
-                val clickBuriedPoint: String? = null,
-                @SerializedName("click_buried_point_params")
-                val clickBuriedPointParams: ClickBuriedPointParams? = null,
-                @SerializedName("show_buried_point")
-                val showBuriedPoint: String? = null,
-                @SerializedName("show_buried_point_params")
-                val showBuriedPointParams: ShowBuriedPointParams? = null,
-                @SerializedName("click_hide_profile")
-                val clickHideProfile: Boolean? = null,
-                @SerializedName("tag_name")
-                val tagName: String? = null
-            ) {
-                data class BgColor(
-                    @SerializedName("bg_color_start")
-                    val bgColorStart: String? = null,
-                    @SerializedName("bg_color_end")
-                    val bgColorEnd: String? = null
-                )
-
-                data class TagContent(
-                    @SerializedName("key")
-                    val key: String? = null,
-                    @SerializedName("default_pattern")
-                    val defaultPattern: String? = null,
-                    @SerializedName("default_format")
-                    val defaultFormat: DefaultFormat? = null,
-                    @SerializedName("pieces")
-                    val pieces: List<Piece?>? = null,
-                    @SerializedName("schema_infos")
-                    val schemaInfos: SchemaInfos? = null
-                ) {
-                    data class DefaultFormat(
-                        @SerializedName("color")
-                        val color: String? = null,
-                        @SerializedName("bold")
-                        val bold: Boolean? = null,
-                        @SerializedName("italic")
-                        val italic: Boolean? = null,
-                        @SerializedName("weight")
-                        val weight: Int? = null,
-                        @SerializedName("italic_angle")
-                        val italicAngle: Int? = null,
-                        @SerializedName("font_size")
-                        val fontSize: Int? = null,
-                        @SerializedName("use_heigh_light_color")
-                        val useHeighLightColor: Boolean? = null,
-                        @SerializedName("use_remote_clor")
-                        val useRemoteClor: Boolean? = null,
-                        @SerializedName("ignore_color_mapping")
-                        val ignoreColorMapping: Boolean? = null
-                    )
-
-                    data class Piece(
-                        @SerializedName("type")
-                        val type: Int? = null,
-                        @SerializedName("value_ref")
-                        val valueRef: String? = null,
-                        @SerializedName("string_value")
-                        val stringValue: String? = null,
-                        @SerializedName("image_value")
-                        val imageValue: ImageValue? = null,
-                        @SerializedName("schema_key")
-                        val schemaKey: String? = null,
-                        @SerializedName("format")
-                        val format: Format? = null
-                    ) {
-                        data class ImageValue(
-                            @SerializedName("image")
-                            val image: Image? = null,
-                            @SerializedName("scaling_rate")
-                            val scalingRate: Int? = null
-                        ) {
-                            data class Image(
-                                @SerializedName("url_list")
-                                val urlList: List<String?>? = null,
-                                @SerializedName("uri")
-                                val uri: String? = null,
-                                @SerializedName("height")
-                                val height: Int? = null,
-                                @SerializedName("width")
-                                val width: Int? = null,
-                                @SerializedName("avg_color")
-                                val avgColor: String? = null,
-                                @SerializedName("image_type")
-                                val imageType: Int? = null,
-                                @SerializedName("open_web_url")
-                                val openWebUrl: String? = null,
-                                @SerializedName("content")
-                                val content: Content? = null,
-                                @SerializedName("is_animated")
-                                val isAnimated: Boolean? = null,
-                                @SerializedName("flex_setting_list")
-                                val flexSettingList: List<Any?>? = null,
-                                @SerializedName("text_setting_list")
-                                val textSettingList: List<Any?>? = null
-                            ) {
-                                data class Content(
-                                    @SerializedName("name")
-                                    val name: String? = null,
-                                    @SerializedName("font_color")
-                                    val fontColor: String? = null,
-                                    @SerializedName("level")
-                                    val level: Int? = null,
-                                    @SerializedName("alternative_text")
-                                    val alternativeText: String? = null
-                                )
-                            }
-                        }
-
-                        data class Format(
-                            @SerializedName("color")
-                            val color: String? = null,
-                            @SerializedName("bold")
-                            val bold: Boolean? = null,
-                            @SerializedName("italic")
-                            val italic: Boolean? = null,
-                            @SerializedName("weight")
-                            val weight: Int? = null,
-                            @SerializedName("italic_angle")
-                            val italicAngle: Int? = null,
-                            @SerializedName("font_size")
-                            val fontSize: Int? = null,
-                            @SerializedName("use_heigh_light_color")
-                            val useHeighLightColor: Boolean? = null,
-                            @SerializedName("use_remote_clor")
-                            val useRemoteClor: Boolean? = null,
-                            @SerializedName("ignore_color_mapping")
-                            val ignoreColorMapping: Boolean? = null
-                        )
-                    }
-
-                    class SchemaInfos
-                }
-
-                class ClickBuriedPointParams
-
-                class ShowBuriedPointParams
-            }
-
             data class ShopFansClub(
                 @SerializedName("total_fans_count")
                 val totalFansCount: Int? = null,
@@ -994,7 +954,7 @@ data class FansClubInfoBean(
                     @SerializedName("available_gift_ids")
                     val availableGiftIds: List<Any?>? = null,
                     @SerializedName("anchor_id")
-                    val anchorId: Long? = null,
+                    val anchorId: Int? = null,
                     @SerializedName("anchor_open_id")
                     val anchorOpenId: String? = null
                 )
@@ -1330,7 +1290,9 @@ data class FansClubInfoBean(
                                     @SerializedName("alignment")
                                     val alignment: Int? = null,
                                     @SerializedName("string_value")
-                                    val stringValue: StringValue? = null
+                                    val stringValue: StringValue? = null,
+                                    @SerializedName("image_value")
+                                    val imageValue: ImageValue? = null
                                 ) {
                                     data class StringValue(
                                         @SerializedName("format")
@@ -1348,6 +1310,47 @@ data class FansClubInfoBean(
                                             @SerializedName("font_color")
                                             val fontColor: String? = null
                                         )
+                                    }
+
+                                    data class ImageValue(
+                                        @SerializedName("image")
+                                        val image: Image? = null
+                                    ) {
+                                        data class Image(
+                                            @SerializedName("url_list")
+                                            val urlList: List<Any?>? = null,
+                                            @SerializedName("uri")
+                                            val uri: String? = null,
+                                            @SerializedName("height")
+                                            val height: Int? = null,
+                                            @SerializedName("width")
+                                            val width: Int? = null,
+                                            @SerializedName("avg_color")
+                                            val avgColor: String? = null,
+                                            @SerializedName("image_type")
+                                            val imageType: Int? = null,
+                                            @SerializedName("open_web_url")
+                                            val openWebUrl: String? = null,
+                                            @SerializedName("content")
+                                            val content: Content? = null,
+                                            @SerializedName("is_animated")
+                                            val isAnimated: Boolean? = null,
+                                            @SerializedName("flex_setting_list")
+                                            val flexSettingList: List<Any?>? = null,
+                                            @SerializedName("text_setting_list")
+                                            val textSettingList: List<Any?>? = null
+                                        ) {
+                                            data class Content(
+                                                @SerializedName("name")
+                                                val name: String? = null,
+                                                @SerializedName("font_color")
+                                                val fontColor: String? = null,
+                                                @SerializedName("level")
+                                                val level: Int? = null,
+                                                @SerializedName("alternative_text")
+                                                val alternativeText: String? = null
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -1378,8 +1381,16 @@ data class FansClubInfoBean(
                             data class ShowEventParams(
                                 @SerializedName("card_type")
                                 val cardType: String? = null,
+                                @SerializedName("collected_num")
+                                val collectedNum: String? = null,
+                                @SerializedName("is_collected")
+                                val isCollected: String? = null,
                                 @SerializedName("is_self")
                                 val isSelf: String? = null,
+                                @SerializedName("to_user_id")
+                                val toUserId: String? = null,
+                                @SerializedName("user_id")
+                                val userId: String? = null,
                                 @SerializedName("is_wear")
                                 val isWear: String? = null,
                                 @SerializedName("package_id")
@@ -1387,22 +1398,28 @@ data class FansClubInfoBean(
                                 @SerializedName("package_status")
                                 val packageStatus: String? = null,
                                 @SerializedName("show_from")
-                                val showFrom: String? = null,
-                                @SerializedName("to_user_id")
-                                val toUserId: String? = null
+                                val showFrom: String? = null
                             )
 
                             data class ClickEventParams(
+                                @SerializedName("card_type")
+                                val cardType: String? = null,
+                                @SerializedName("collected_num")
+                                val collectedNum: String? = null,
+                                @SerializedName("is_collected")
+                                val isCollected: String? = null,
                                 @SerializedName("is_self")
                                 val isSelf: String? = null,
+                                @SerializedName("to_user_id")
+                                val toUserId: String? = null,
+                                @SerializedName("user_id")
+                                val userId: String? = null,
                                 @SerializedName("is_wear")
                                 val isWear: String? = null,
                                 @SerializedName("package_id")
                                 val packageId: String? = null,
                                 @SerializedName("package_status")
-                                val packageStatus: String? = null,
-                                @SerializedName("to_user_id")
-                                val toUserId: String? = null
+                                val packageStatus: String? = null
                             )
 
                             class GlobalShowEventParams
@@ -1859,7 +1876,9 @@ data class FansClubInfoBean(
                     @SerializedName("end_time")
                     val endTime: Int? = null,
                     @SerializedName("stats_info")
-                    val statsInfo: StatsInfo? = null
+                    val statsInfo: StatsInfo? = null,
+                    @SerializedName("buff_badge")
+                    val buffBadge: BuffBadge? = null
                 ) {
                     data class StatsInfo(
                         @SerializedName("1")
@@ -1871,6 +1890,42 @@ data class FansClubInfoBean(
                         @SerializedName("4")
                         val x4: Int? = null
                     )
+
+                    data class BuffBadge(
+                        @SerializedName("url_list")
+                        val urlList: List<String?>? = null,
+                        @SerializedName("uri")
+                        val uri: String? = null,
+                        @SerializedName("height")
+                        val height: Int? = null,
+                        @SerializedName("width")
+                        val width: Int? = null,
+                        @SerializedName("avg_color")
+                        val avgColor: String? = null,
+                        @SerializedName("image_type")
+                        val imageType: Int? = null,
+                        @SerializedName("open_web_url")
+                        val openWebUrl: String? = null,
+                        @SerializedName("content")
+                        val content: Content? = null,
+                        @SerializedName("is_animated")
+                        val isAnimated: Boolean? = null,
+                        @SerializedName("flex_setting_list")
+                        val flexSettingList: List<Any?>? = null,
+                        @SerializedName("text_setting_list")
+                        val textSettingList: List<Any?>? = null
+                    ) {
+                        data class Content(
+                            @SerializedName("name")
+                            val name: String? = null,
+                            @SerializedName("font_color")
+                            val fontColor: String? = null,
+                            @SerializedName("level")
+                            val level: Int? = null,
+                            @SerializedName("alternative_text")
+                            val alternativeText: String? = null
+                        )
+                    }
                 }
             }
 
@@ -1909,12 +1964,14 @@ data class FansClubInfoBean(
                         val title: String? = null
                     ) {
                         data class Icons(
-                            @SerializedName("0")
-                            val x0: X0? = null
+                            @SerializedName("2")
+                            val x2: X2? = null,
+                            @SerializedName("4")
+                            val x4: X4? = null
                         ) {
-                            data class X0(
+                            data class X2(
                                 @SerializedName("url_list")
-                                val urlList: List<Any?>? = null,
+                                val urlList: List<String?>? = null,
                                 @SerializedName("uri")
                                 val uri: String? = null,
                                 @SerializedName("height")
@@ -1934,6 +1991,39 @@ data class FansClubInfoBean(
                                 @SerializedName("text_setting_list")
                                 val textSettingList: List<Any?>? = null
                             )
+
+                            data class X4(
+                                @SerializedName("url_list")
+                                val urlList: List<String?>? = null,
+                                @SerializedName("uri")
+                                val uri: String? = null,
+                                @SerializedName("height")
+                                val height: Int? = null,
+                                @SerializedName("width")
+                                val width: Int? = null,
+                                @SerializedName("avg_color")
+                                val avgColor: String? = null,
+                                @SerializedName("image_type")
+                                val imageType: Int? = null,
+                                @SerializedName("open_web_url")
+                                val openWebUrl: String? = null,
+                                @SerializedName("is_animated")
+                                val isAnimated: Boolean? = null,
+                                @SerializedName("flex_setting_list")
+                                val flexSettingList: List<FlexSetting?>? = null,
+                                @SerializedName("text_setting_list")
+                                val textSettingList: List<TextSetting?>? = null
+                            ) {
+                                data class FlexSetting(
+                                    @SerializedName("setting_list")
+                                    val settingList: List<Int?>? = null
+                                )
+
+                                data class TextSetting(
+                                    @SerializedName("setting_list")
+                                    val settingList: List<Int?>? = null
+                                )
+                            }
                         }
                     }
                 }

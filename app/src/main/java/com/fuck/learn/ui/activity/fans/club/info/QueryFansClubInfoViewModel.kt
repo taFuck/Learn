@@ -37,8 +37,11 @@ data class UiFansClubItem(
     val nickname: String?,
     val avatarUrl: String?,
     val level: String?,
+    val levelUrl: String? = null,
+    val clubName: String? = "",
     val state: Int?,
     val vip: String?,
+    val vipUrl: String? = null,
     val star: String?
 )
 
@@ -99,28 +102,38 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
             try {
                 val secUid = DouyinUrlUtils.getSecUid(_secUid.value)
                 if (secUid.isNullOrEmpty()) {
-                    _fansClubUiState.value = FansClubUiState.Error(context.getString(R.string.add_live_steamer_input_tip))
+                    _fansClubUiState.value =
+                        FansClubUiState.Error(context.getString(R.string.add_live_steamer_input_tip))
                     return@launch
                 }
-                val userProfileResponse = RetrofitClient.apiService.getDouyinUserProfile(DouyinParamUtils.getCookie(),secUid)
+                val userProfileResponse = RetrofitClient.apiService.getDouyinUserProfile(
+                    DouyinParamUtils.getCookie(),
+                    secUid
+                )
                 val body = userProfileResponse.body()?.string() ?: ""
 
                 val nicknameRegex = """\\"nickname\\":\\"(.*?)\\"""".toRegex()
                 val imgRegex = """\\"avatar300Url\\":\\"(.*?)\\"""".toRegex()
                 val ipRegex = """\\"ipLocation\\":\\"IP属地：(.*?)\\"""".toRegex()
                 val nickname = nicknameRegex.find(body)?.groups?.get(1)?.value
+                if (nickname.isNullOrBlank()) {
+                    _fansClubUiState.value = FansClubUiState.Error("User does not exist")
+                    return@launch
+                }
                 val img = imgRegex.find(body)?.groups?.get(1)?.value
                 val ip = ipRegex.find(body)?.groups?.get(1)?.value
 
                 val resultList = mutableListOf<UiFansClubItem>()
                 streamers.value.forEach {
                     val response = RetrofitClient.apiService.getFansClubInfo(
-                        cookie = DouyinParamUtils.getCookie(), sec_anchor_id = it.secUid, sec_target_uid = secUid
+                        cookie = DouyinParamUtils.getCookie(),
+                        sec_anchor_id = it.secUid,
+                        sec_target_uid = secUid
                     )
 
                     if (_isFirst.value) {
                         val finalName =
-                            if (nickname.equals(response.data?.userProfile?.baseInfo?.nickname)) nickname
+                            if (nickname == response.data?.userProfile?.baseInfo?.nickname) nickname
                             else "$nickname（${response.data?.userProfile?.baseInfo?.nickname}）"
 
                         addToHistory(
@@ -133,14 +146,17 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
                         val userInfo = UiUserInfoItem(
                             nickname = finalName,
                             avatarUrl = img,
-                            skinUrl = response.data?.userProfile?.profileSkin?.skin?.avatarBorder?.urlList?.getOrNull(0),
-                            level = response.extra?.bizExtra?.clickedRebirthLevel?.toIntOrNull()?.let { level ->
-                                if (level == -1) {
-                                    response.data?.userData?.payGrade?.level.toString()
-                                } else {
-                                    "$level (${response.extra.bizExtra.clickedPrivilegeLevel} Lv.Rebirth)"
-                                }
-                            },
+                            skinUrl = response.data?.userProfile?.profileSkin?.skin?.avatarBorder?.urlList?.getOrNull(
+                                0
+                            ),
+                            level = response.extra?.bizExtra?.clickedRebirthLevel?.toIntOrNull()
+                                ?.let { level ->
+                                    if (level == -1) {
+                                        response.data?.userData?.payGrade?.level.toString()
+                                    } else {
+                                        "$level (${response.extra.bizExtra.clickedPrivilegeLevel} Lv.Rebirth)"
+                                    }
+                                },
                             consumeMin = response.data?.userData?.payGrade?.thisGradeMinDiamond,
                             consumeMax = response.data?.userData?.payGrade?.thisGradeMaxDiamond,
                             ip = ip,
@@ -157,19 +173,33 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
                         avatarUrl = it.avatarUrl,
                         level = if (response.data?.userData?.fansClub?.data?.level == 0) "-"
                         else response.data?.userData?.fansClub?.data?.level.toString(),
+                        levelUrl = response.data?.userData?.fansClub?.data?.badge?.icons?.x2?.urlList?.getOrNull(
+                            0
+                        )
+                            ?: response.data?.userProfile?.openArea?.businessAreaV3?.topElementList?.getOrNull(
+                                0
+                            )?.honorWallContent?.honorWallBottomDisplay?.pieces?.getOrNull(0)?.imageValue?.image?.urlList?.getOrNull(
+                                0
+                            ),
+                        clubName = response.data?.userData?.fansClub?.data?.clubName,
                         state = response.data?.userData?.fansClub?.data?.userFansClubStatus,
                         star = if (response.data?.userData?.fansClub?.data?.clubName?.isEmpty() == true) "×" else "√",
                         vip = response.data?.userProfile?.openArea?.businessAreaV3?.topElementList?.getOrNull(
                             1
                         )?.honorWallContent?.honorWallTopDisplay?.pieces?.getOrNull(1)?.stringValue?.stringValue
-                            ?: "-"
+                            ?: "-",
+                        vipUrl = response.data?.userProfile?.openArea?.businessAreaV3?.topElementList?.getOrNull(
+                            1
+                        )?.honorWallContent?.honorWallBottomDisplay?.pieces?.getOrNull(0)?.imageValue?.image?.urlList?.getOrNull(
+                            0
+                        )
                     )
                     resultList.add(newItem)
                     _uiFansClubItems.value = resultList.toList()
                 }
                 _fansClubUiState.value = FansClubUiState.Success
             } catch (e: Exception) {
-                LogUtils.e( "${context.getString(R.string.error)} ${e.localizedMessage}")
+                LogUtils.e("${context.getString(R.string.error)} ${e.localizedMessage}")
                 _fansClubUiState.value = FansClubUiState.Error(e.message.toString())
             } finally {
                 _isQuerying.value = false
