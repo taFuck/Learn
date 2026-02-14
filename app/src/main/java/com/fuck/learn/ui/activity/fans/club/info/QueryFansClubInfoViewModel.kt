@@ -26,6 +26,7 @@ data class UiUserInfoItem(
     val skinUrl: String? = null,
     val level: String? = null,
     val ip: String? = null,
+    val mystery: Int? = null,
     val consumeMin: Int? = null,
     val consumeMax: Int? = null,
     val account: String? = null,
@@ -107,8 +108,7 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
                     return@launch
                 }
                 val userProfileResponse = RetrofitClient.apiService.getDouyinUserProfile(
-                    DouyinParamUtils.getCookie(),
-                    secUid
+                    DouyinParamUtils.getCookie(), secUid
                 )
                 val body = userProfileResponse.body()?.string() ?: ""
 
@@ -131,15 +131,21 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
                         sec_target_uid = secUid
                     )
 
+                    var mystery: Int
+                    var finalName: String
                     if (_isFirst.value) {
-                        val finalName =
-                            if (nickname == response.data?.userProfile?.baseInfo?.nickname) nickname
-                            else "$nickname（${response.data?.userProfile?.baseInfo?.nickname}）"
+                        if (nickname == response.data?.userProfile?.baseInfo?.nickname) {
+                            mystery = 0
+                            finalName = nickname
+                        } else {
+                            mystery = 1
+                            finalName =
+                                "$nickname（${response.data?.userProfile?.baseInfo?.nickname}）"
+                        }
 
                         addToHistory(
                             HistoryForFansClub(
-                                nickname = finalName!!,
-                                url = "https://www.douyin.com/user/${secUid}"
+                                nickname = finalName, url = "https://www.douyin.com/user/${secUid}"
                             )
                         )
 
@@ -160,6 +166,7 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
                             consumeMin = response.data?.userData?.payGrade?.thisGradeMinDiamond,
                             consumeMax = response.data?.userData?.payGrade?.thisGradeMaxDiamond,
                             ip = ip,
+                            mystery = mystery,
                             account = response.data?.userProfile?.baseInfo?.displayId,
                             following = response.data?.userProfile?.followInfo?.followingCount,
                             follower = response.data?.userProfile?.followInfo?.followerCount
@@ -173,14 +180,11 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
                         avatarUrl = it.avatarUrl,
                         level = if (response.data?.userData?.fansClub?.data?.level == 0) "-"
                         else response.data?.userData?.fansClub?.data?.level.toString(),
-                        levelUrl = response.data?.userData?.fansClub?.data?.badge?.icons?.x2?.urlList?.getOrNull(
+                        levelUrl = response.data?.userProfile?.openArea?.businessAreaV3?.topElementList?.getOrNull(
                             0
-                        )
-                            ?: response.data?.userProfile?.openArea?.businessAreaV3?.topElementList?.getOrNull(
-                                0
-                            )?.honorWallContent?.honorWallBottomDisplay?.pieces?.getOrNull(0)?.imageValue?.image?.urlList?.getOrNull(
-                                0
-                            ),
+                        )?.honorWallContent?.honorWallBottomDisplay?.pieces?.getOrNull(0)?.imageValue?.image?.urlList?.getOrNull(
+                            0
+                        ),
                         clubName = response.data?.userData?.fansClub?.data?.clubName,
                         state = response.data?.userData?.fansClub?.data?.userFansClubStatus,
                         star = if (response.data?.userData?.fansClub?.data?.clubName?.isEmpty() == true) "×" else "√",

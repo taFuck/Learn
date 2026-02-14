@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -30,6 +31,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
@@ -89,6 +91,7 @@ class QueryFansClubInfoActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val context = LocalContext.current
             val fansClubUiState by viewModel.fansClubUiState.collectAsState()
             var currentTime by remember { mutableStateOf("") }
 
@@ -113,7 +116,23 @@ class QueryFansClubInfoActivity : ComponentActivity() {
                                             contentDescription = stringResource(R.string.content_description_back)
                                         )
                                     }
+                                },
+
+                                actions = {
+                                    IconButton(onClick = {
+                                        context.startActivity(
+                                            Intent(
+                                                context, AddLiveStreamerActivity::class.java
+                                            )
+                                        )
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Person,
+                                            contentDescription = stringResource(R.string.add_live_steamer_label)
+                                        )
+                                    }
                                 })
+
                             HorizontalDivider()
 
                             Text(
@@ -144,9 +163,7 @@ class QueryFansClubInfoActivity : ComponentActivity() {
                 is FansClubUiState.Error -> {
                     LaunchedEffect(state) {
                         Toast.makeText(
-                            this@QueryFansClubInfoActivity,
-                            state.message,
-                            Toast.LENGTH_LONG
+                            this@QueryFansClubInfoActivity, state.message, Toast.LENGTH_LONG
                         ).show()
                         LogUtils.e("${getString(R.string.error)} ${state.message}")
                     }
@@ -307,25 +324,16 @@ fun FansClubInfoContent(
         }
 
         item {
-            Row(
-                modifier = Modifier
+            Button(
+                onClick = {
+                    keyboardController?.hide()
+                    if (isQuerying) onStopQuery() else onExecuteQuery()
+                }, modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(top = 8.dp)
+                    .wrapContentWidth(Alignment.End)
             ) {
-                Button(
-                    onClick = {
-                        keyboardController?.hide()
-                        if (isQuerying) onStopQuery() else onExecuteQuery()
-                    }, modifier = Modifier.weight(1f)
-                ) {
-                    Text(stringResource(if (isQuerying) R.string.user_info_stop_query else R.string.user_info_query))
-                }
-                Button(
-                    onClick = onManageStreamers, modifier = Modifier.weight(1f)
-                ) {
-                    Text(stringResource(R.string.add_live_steamer_label))
-                }
+                Text(stringResource(if (isQuerying) R.string.user_info_stop_query else R.string.user_info_query))
             }
         }
 
@@ -415,7 +423,6 @@ fun UserInfoItem(item: UiUserInfoItem) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -487,10 +494,12 @@ fun UserInfoItem(item: UiUserInfoItem) {
 
 @Composable
 private fun FansClubItemRow(item: UiFansClubItem) {
-    LogUtils.e("""${item.clubName}
+    LogUtils.e(
+        """${item.clubName}
         ${item.levelUrl}
         ${item.vipUrl}
-    """.trimMargin())
+    """.trimMargin()
+    )
     Row(
         modifier = Modifier
             .padding(horizontal = 8.dp, vertical = 4.dp)
