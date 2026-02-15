@@ -362,12 +362,12 @@ fun UserInfoItem(item: UiUserInfoItem) {
 
                 item.skinBgUrl?.let {
                     val imageLoader = ImageLoader.Builder(context).components {
-                            if (Build.VERSION.SDK_INT >= 28) {
-                                add(ImageDecoderDecoder.Factory())
-                            } else {
-                                add(GifDecoder.Factory())
-                            }
-                        }.build()
+                        if (Build.VERSION.SDK_INT >= 28) {
+                            add(ImageDecoderDecoder.Factory())
+                        } else {
+                            add(GifDecoder.Factory())
+                        }
+                    }.build()
 
                     AsyncImage(
                         model = it,
@@ -390,14 +390,14 @@ fun UserInfoItem(item: UiUserInfoItem) {
                     ) {
                         val imageRequest = remember(item.avatarUrl, showBlur) {
                             ImageRequest.Builder(context).data(item.avatarUrl).apply {
-                                    if (showBlur) {
-                                        transformations(
-                                            BlurTransformation(
-                                                context = context, radius = 25f, sampling = 1.1f
-                                            )
+                                if (showBlur) {
+                                    transformations(
+                                        BlurTransformation(
+                                            context = context, radius = 25f, sampling = 1.1f
                                         )
-                                    }
-                                }.build()
+                                    )
+                                }
+                            }.build()
                         }
 
                         AsyncImage(
@@ -512,7 +512,10 @@ private fun FansClubItemRow(item: UiFansClubItem) {
         Spacer(modifier = Modifier.width(2.dp))
 
         AsyncImage(
-            model = item.vipUrl, contentDescription = "Vip", contentScale = ContentScale.Fit
+            modifier = Modifier.width(28.dp),
+            model = item.vipUrl,
+            contentDescription = "Vip",
+            contentScale = ContentScale.Fit,
         )
     }
 }
