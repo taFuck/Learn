@@ -14,8 +14,8 @@ android {
         applicationId = "com.fuck.learn"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10100
-        versionName = "1.1.0"
+        versionCode = 20000
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.ui.graphics)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -83,6 +84,8 @@ dependencies {
     implementation(libs.rhino)
 
     implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
+    implementation(libs.transformations)
 
     // mmkv
     implementation(libs.mmkv.static)

@@ -24,14 +24,15 @@ data class UiUserInfoItem(
     val nickname: String? = null,
     val avatarUrl: String? = null,
     val skinUrl: String? = null,
+    val skinBgUrl: String? = null,
     val level: String? = null,
     val ip: String? = null,
-    val mystery: Int? = null,
+    val mystery: Boolean? = null,
     val consumeMin: Int? = null,
     val consumeMax: Int? = null,
     val account: String? = null,
     val following: Int? = null,
-    val follower: Int? = null
+    val follower: Int? = null,
 )
 
 data class UiFansClubItem(
@@ -39,7 +40,6 @@ data class UiFansClubItem(
     val avatarUrl: String?,
     val level: String?,
     val levelUrl: String? = null,
-    val clubName: String? = "",
     val state: Int?,
     val vip: String?,
     val vipUrl: String? = null,
@@ -131,14 +131,14 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
                         sec_target_uid = secUid
                     )
 
-                    var mystery: Int
+                    var mystery: Boolean
                     var finalName: String
                     if (_isFirst.value) {
                         if (nickname == response.data?.userProfile?.baseInfo?.nickname) {
-                            mystery = 0
+                            mystery = false
                             finalName = nickname
                         } else {
-                            mystery = 1
+                            mystery = true
                             finalName =
                                 "$nickname（${response.data?.userProfile?.baseInfo?.nickname}）"
                         }
@@ -155,6 +155,12 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
                             skinUrl = response.data?.userProfile?.profileSkin?.skin?.avatarBorder?.urlList?.getOrNull(
                                 0
                             ),
+                            skinBgUrl = response.data?.userProfile?.profileSkin?.skin?.bgUiWebp?.overallImage?.urlList?.getOrNull(
+                                0
+                            )
+                                ?: response.data?.userProfile?.profileSkin?.skin?.bgUi?.overallImage?.urlList?.getOrNull(
+                                    0
+                                ),
                             level = response.extra?.bizExtra?.clickedRebirthLevel?.toIntOrNull()
                                 ?.let { level ->
                                     if (level == -1) {
@@ -169,7 +175,7 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
                             mystery = mystery,
                             account = response.data?.userProfile?.baseInfo?.displayId,
                             following = response.data?.userProfile?.followInfo?.followingCount,
-                            follower = response.data?.userProfile?.followInfo?.followerCount
+                            follower = response.data?.userProfile?.followInfo?.followerCount,
                         )
                         _uiUserInfoItems.value = userInfo
                         _isFirst.value = false
@@ -185,7 +191,6 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
                         )?.honorWallContent?.honorWallBottomDisplay?.pieces?.getOrNull(0)?.imageValue?.image?.urlList?.getOrNull(
                             0
                         ),
-                        clubName = response.data?.userData?.fansClub?.data?.clubName,
                         state = response.data?.userData?.fansClub?.data?.userFansClubStatus,
                         star = if (response.data?.userData?.fansClub?.data?.clubName?.isEmpty() == true) "×" else "√",
                         vip = response.data?.userProfile?.openArea?.businessAreaV3?.topElementList?.getOrNull(

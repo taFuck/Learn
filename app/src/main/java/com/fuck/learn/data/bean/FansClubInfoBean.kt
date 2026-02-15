@@ -631,7 +631,7 @@ data class FansClubInfoBean(
                     ) {
                         data class OverallImage(
                             @SerializedName("url_list")
-                            val urlList: List<Any?>? = null,
+                            val urlList: List<String?>? = null,
                             @SerializedName("uri")
                             val uri: String? = null,
                             @SerializedName("height")

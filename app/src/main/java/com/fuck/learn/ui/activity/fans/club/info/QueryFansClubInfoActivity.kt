@@ -1,6 +1,7 @@
 package com.fuck.learn.ui.activity.fans.club.info
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,9 +22,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -47,7 +49,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -71,7 +72,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
+import com.commit451.coiltransformations.BlurTransformation
 import com.fuck.learn.R
 import com.fuck.learn.data.db.HistoryForFansClub
 import com.fuck.learn.ui.theme.DouyinToolTheme
@@ -94,6 +100,7 @@ class QueryFansClubInfoActivity : ComponentActivity() {
             val context = LocalContext.current
             val fansClubUiState by viewModel.fansClubUiState.collectAsState()
             var currentTime by remember { mutableStateOf("") }
+            val lazyListState = rememberLazyListState()
 
             LaunchedEffect(true) {
                 val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
@@ -146,7 +153,9 @@ class QueryFansClubInfoActivity : ComponentActivity() {
                         }
                     }) { innerPadding ->
                     FansClubInfoScreen(
-                        viewModel = viewModel, modifier = Modifier.padding(innerPadding)
+                        viewModel = viewModel,
+                        modifier = Modifier.padding(innerPadding),
+                        lazyListState = lazyListState
                     )
                 }
             }
@@ -157,7 +166,11 @@ class QueryFansClubInfoActivity : ComponentActivity() {
                 }
 
                 is FansClubUiState.Success -> {
-                    Toast.makeText(this, "Done", Toast.LENGTH_LONG).show()
+                    LaunchedEffect(state) {
+                        Toast.makeText(this@QueryFansClubInfoActivity, "Done", Toast.LENGTH_LONG)
+                            .show()
+                        lazyListState.animateScrollToItem(3)
+                    }
                 }
 
                 is FansClubUiState.Error -> {
@@ -190,13 +203,16 @@ class QueryFansClubInfoActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FansClubInfoScreen(viewModel: QueryFansClubInfoViewModel, modifier: Modifier = Modifier) {
+fun FansClubInfoScreen(
+    viewModel: QueryFansClubInfoViewModel,
+    modifier: Modifier = Modifier,
+    lazyListState: LazyListState = rememberLazyListState()
+) {
     val secUid by viewModel.secUid.collectAsStateWithLifecycle()
     val uiFansClubItems by viewModel.uiFansClubItems.collectAsStateWithLifecycle()
     val uiUserInfoItems by viewModel.uiUserInfoItems.collectAsStateWithLifecycle()
     val history by viewModel.history.collectAsStateWithLifecycle()
     val isQuerying by viewModel.isQuerying.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     FansClubInfoContent(
         modifier = modifier,
@@ -209,13 +225,8 @@ fun FansClubInfoScreen(viewModel: QueryFansClubInfoViewModel, modifier: Modifier
         onExecuteQuery = viewModel::executeQuery,
         onStopQuery = viewModel::stopQuery,
         onDeleteHistory = viewModel::onDeleteHistory,
-        onManageStreamers = {
-            context.startActivity(
-                Intent(
-                    context, AddLiveStreamerActivity::class.java
-                )
-            )
-        })
+        lazyListState = lazyListState
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -230,8 +241,8 @@ fun FansClubInfoContent(
     onExecuteQuery: () -> Unit,
     onStopQuery: () -> Unit,
     onDeleteHistory: (HistoryForFansClub) -> Unit,
-    onManageStreamers: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    lazyListState: LazyListState = rememberLazyListState()
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     var expanded by remember { mutableStateOf(false) }
@@ -241,35 +252,8 @@ fun FansClubInfoContent(
     var sortState by remember { mutableStateOf<Pair<Int, Boolean>?>(null) }
 
     val sortedFansClubItems = remember(uiFansClubItems, sortState) {
-        val state = sortState
-        if (state == null) {
-            uiFansClubItems
-        } else {
-            when (state.first) {
-                0 -> if (state.second) uiFansClubItems.sortedBy { it.nickname } else uiFansClubItems.sortedByDescending { it.nickname }
-                1 -> if (state.second) uiFansClubItems.sortedByDescending {
-                    it.level?.toIntOrNull() ?: -1
-                } else uiFansClubItems.sortedBy {
-                    it.level?.toIntOrNull() ?: -1
-                }
-
-                2 -> if (state.second) uiFansClubItems.sortedByDescending {
-                    when (it.vip) {
-                        "\u5df2\u5f00\u901a" -> 2
-                        "\u672a\u5f00\u901a" -> 1
-                        else -> 0
-                    }
-                } else uiFansClubItems.sortedBy {
-                    when (it.vip) {
-                        "\u5df2\u5f00\u901a" -> 2
-                        "\u672a\u5f00\u901a" -> 1
-                        else -> 0
-                    }
-                }
-
-                4 -> if (state.second) uiFansClubItems.sortedByDescending { it.star } else uiFansClubItems.sortedBy { it.star }
-                else -> uiFansClubItems
-            }
+        uiFansClubItems.sortedByDescending {
+            it.level?.toIntOrNull() ?: -1
         }
     }
 
@@ -278,7 +262,9 @@ fun FansClubInfoContent(
             textFieldValue = TextFieldValue(secUid, TextRange(secUid.length))
         }
     }
-    LazyColumn(modifier = modifier.padding(16.dp, 8.dp, 16.dp, 0.dp)) {
+    LazyColumn(
+        modifier = modifier.padding(16.dp, 8.dp, 16.dp, 0.dp), state = lazyListState
+    ) {
         item {
             ExposedDropdownMenuBox(
                 expanded = expanded,
@@ -331,7 +317,8 @@ fun FansClubInfoContent(
                 }, modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
-                    .wrapContentWidth(Alignment.End)
+//                    .wrapContentWidth(Alignment.Start)
+//                    .wrapContentWidth(Alignment.End)
             ) {
                 Text(stringResource(if (isQuerying) R.string.user_info_stop_query else R.string.user_info_query))
             }
@@ -345,53 +332,11 @@ fun FansClubInfoContent(
             stickyHeader {
                 Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
                     UserInfoItem(uiUserInfoItems)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        ClickableHeaderText(
-                            text = "Name", weight = 1f, isSelected = sortState?.first == 0
-                        ) {
-                            sortState = when (sortState) {
-                                0 to true -> 0 to false
-                                0 to false -> null
-                                else -> 0 to true
-                            }
-                        }
-                        VerticalDivider(modifier = Modifier.height(16.dp))
-                        ClickableHeaderText(
-                            text = "Level", weight = 1f, isSelected = sortState?.first == 1
-                        ) {
-                            sortState = when (sortState) {
-                                1 to true -> 1 to false
-                                1 to false -> null
-                                else -> 1 to true
-                            }
-                        }
-                        VerticalDivider(modifier = Modifier.height(16.dp))
-                        ClickableHeaderText(
-                            text = "Vip", weight = 1f, isSelected = sortState?.first == 3
-                        ) {
-                            sortState = when (sortState) {
-                                3 to true -> 3 to false
-                                3 to false -> null
-                                else -> 3 to true
-                            }
-                        }
-                        VerticalDivider(modifier = Modifier.height(16.dp))
-                        ClickableHeaderText(
-                            text = "Star", weight = 1f, isSelected = sortState?.first == 4
-                        ) {
-                            sortState = when (sortState) {
-                                4 to true -> 4 to false
-                                4 to false -> null
-                                else -> 4 to true
-                            }
-                        }
-                    }
                 }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             items(sortedFansClubItems) { item ->
@@ -403,153 +348,171 @@ fun FansClubInfoContent(
 }
 
 @Composable
-fun RowScope.ClickableHeaderText(
-    text: String, weight: Float, isSelected: Boolean, onClick: () -> Unit
-) {
-    Text(
-        text = text,
-        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-        textAlign = TextAlign.Center,
-        modifier = Modifier
-            .weight(weight)
-            .clickable(onClick = onClick)
-    )
-}
-
-
-@Composable
 fun UserInfoItem(item: UiUserInfoItem) {
+    var showBlur by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+
     if (item.nickname != null) {
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
+                containerColor = if (item.skinBgUrl.isNullOrEmpty()) Color.Gray.copy(0.5f) else Color.Transparent
+            )
         ) {
-            Row(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center, modifier = Modifier.padding(start = 8.dp)
-                ) {
-                    AsyncImage(
-                        model = item.avatarUrl,
-                        contentDescription = "Avatar",
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
+            Box {
 
-                    item.skinUrl?.let {
-                        AsyncImage(
-                            model = it,
-                            contentDescription = "Skin",
-                            modifier = Modifier.size(80.dp),
-                            contentScale = ContentScale.FillBounds
-                        )
-                    }
+                item.skinBgUrl?.let {
+                    val imageLoader = ImageLoader.Builder(context).components {
+                            if (Build.VERSION.SDK_INT >= 28) {
+                                add(ImageDecoderDecoder.Factory())
+                            } else {
+                                add(GifDecoder.Factory())
+                            }
+                        }.build()
+
+                    AsyncImage(
+                        model = it,
+                        imageLoader = imageLoader,
+                        contentDescription = "Background Image",
+                        modifier = Modifier.matchParentSize(),
+                        contentScale = ContentScale.FillBounds
+                    )
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Column(
-                    modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)
+                Row(
+                    modifier = Modifier
+                        .background(Color.Black.copy(alpha = 0.2f))
+                        .padding(8.dp)
+                        .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = item.nickname,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.basicMarquee(1)
-                    )
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.padding(start = 8.dp)
                     ) {
-                        Text(text = "ID: ${item.account ?: "N/FansClubInfoBean"}", fontSize = 14.sp)
-                        item.ip?.let {
+                        val imageRequest = remember(item.avatarUrl, showBlur) {
+                            ImageRequest.Builder(context).data(item.avatarUrl).apply {
+                                    if (showBlur) {
+                                        transformations(
+                                            BlurTransformation(
+                                                context = context, radius = 25f, sampling = 1.1f
+                                            )
+                                        )
+                                    }
+                                }.build()
+                        }
 
+                        AsyncImage(
+                            model = imageRequest,
+                            contentDescription = "Avatar",
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(CircleShape)
+                                .clickable { showBlur = !showBlur },
+                            contentScale = ContentScale.Crop
+                        )
+
+                        item.skinUrl?.let {
+                            AsyncImage(
+                                model = it,
+                                contentDescription = "Skin",
+                                modifier = Modifier.size(80.dp),
+                                contentScale = ContentScale.FillBounds
+                            )
                         }
                     }
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Text(text = "Level: ${item.level}", fontSize = 14.sp)
-                    }
+                    Spacer(modifier = Modifier.width(16.dp))
 
-                    Text(
-                        text = "\uD83D\uDC8E: ${NumberUtils.withCommas(item.consumeMin)} - ${
-                            NumberUtils.withCommas(
-                                item.consumeMax
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = item.nickname,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            modifier = Modifier.basicMarquee(1)
+                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = "ID: ${item.account ?: "N/FansClubInfoBean"}",
+                                fontSize = 14.sp,
+                                color = Color.White
                             )
-                        }", fontSize = 14.sp
-                    )
+                            item.ip?.let {
+
+                            }
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = "Level: ${item.level}", fontSize = 14.sp, color = Color.White
+                            )
+                        }
+
+                        Text(
+                            text = "\uD83D\uDC8E: ${NumberUtils.withCommas(item.consumeMin)} - ${
+                                NumberUtils.withCommas(
+                                    item.consumeMax
+                                )
+                            }", fontSize = 14.sp, color = Color.White
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+
 @Composable
 private fun FansClubItemRow(item: UiFansClubItem) {
-    LogUtils.e(
-        """${item.clubName}
-        ${item.levelUrl}
-        ${item.vipUrl}
-    """.trimMargin()
-    )
     Row(
         modifier = Modifier
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .fillMaxWidth()
-            .height(24.dp), verticalAlignment = Alignment.CenterVertically
+            .height(28.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = item.nickname ?: "N/FansClubInfoBean",
-            textAlign = TextAlign.Center,
             modifier = Modifier
                 .weight(1f)
                 .basicMarquee(1),
             maxLines = 1,
         )
 
-        Text(
-            text = item.level ?: "N/FansClubInfoBean",
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f),
-            color = if (1 == item.state) {
-                Color.Yellow
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            }
-        )
+        Box(modifier = Modifier.width(48.dp), contentAlignment = Alignment.Center) {
 
-        var text = "×"
-        if ("\u5df2\u5f00\u901a" == item.vip) {
-            text = "√"
+            AsyncImage(
+                model = item.levelUrl, contentDescription = "Level", contentScale = ContentScale.Fit
+            )
+
+            if (0 != item.state) {
+                item.level?.let {
+                    Text(
+                        text = it,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp,
+                        color = when (item.state) {
+                            1 -> Color.White
+                            2 -> Color.Black
+                            else -> MaterialTheme.colorScheme.onSurface
+                        }
+                    )
+                }
+            }
         }
-        Text(
-            text = text,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f),
-            color = if ("\u5df2\u5f00\u901a" == item.vip) {
-                Color.Yellow
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            }
-        )
 
-        Text(
-            text = item.star ?: "N/FansClubInfoBean",
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f),
-            color = if ("√" == item.star) {
-                Color.Yellow
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            }
+        Spacer(modifier = Modifier.width(2.dp))
+
+        AsyncImage(
+            model = item.vipUrl, contentDescription = "Vip", contentScale = ContentScale.Fit
         )
     }
 }
