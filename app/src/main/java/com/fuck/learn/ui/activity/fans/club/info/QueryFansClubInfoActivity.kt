@@ -501,7 +501,7 @@ private fun FansClubItemRow(item: UiFansClubItem) {
                         fontSize = 10.sp,
                         color = when (item.state) {
                             1 -> Color.White
-                            2 -> Color.Black
+                            2 -> Color.Black.copy(0.7f)
                             else -> MaterialTheme.colorScheme.onSurface
                         }
                     )

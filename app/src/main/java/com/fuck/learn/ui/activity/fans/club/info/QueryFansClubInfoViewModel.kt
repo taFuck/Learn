@@ -12,6 +12,7 @@ import com.fuck.learn.utils.DouyinParamUtils
 import com.fuck.learn.utils.DouyinUrlUtils
 import com.fuck.learn.utils.LogUtils
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -71,7 +72,7 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
     val isQuerying = _isQuerying.asStateFlow()
 
     private val _isFirst = MutableStateFlow(true)
-    val isFirst = _isFirst.asStateFlow()
+//    val isFirst = _isFirst.asStateFlow()
 
     private var queryJob: Job? = null
 
@@ -205,6 +206,7 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
                     )
                     resultList.add(newItem)
                     _uiFansClubItems.value = resultList.toList()
+                    delay(200)
                 }
                 _fansClubUiState.value = FansClubUiState.Success
             } catch (e: Exception) {
