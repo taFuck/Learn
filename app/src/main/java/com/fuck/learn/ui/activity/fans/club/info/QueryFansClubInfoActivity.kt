@@ -81,6 +81,7 @@ import com.commit451.coiltransformations.BlurTransformation
 import com.fuck.learn.R
 import com.fuck.learn.data.db.HistoryForFansClub
 import com.fuck.learn.ui.theme.DouyinToolTheme
+import com.fuck.learn.ui.theme.ThemeManager
 import com.fuck.learn.utils.LogUtils
 import com.fuck.learn.utils.NumberUtils
 import kotlinx.coroutines.delay
@@ -478,7 +479,11 @@ private fun FansClubItemRow(item: UiFansClubItem) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 2.dp), colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = if (ThemeManager.getThemeMode(true)) {
+                Color.Transparent
+            } else {
+                MaterialTheme.colorScheme.primary
+            }
         )
     ) {
         Row(
