@@ -286,6 +286,7 @@ fun FansClubInfoContent(
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = {
                         onExecuteQuery()
+                        keyboardController?.hide()
                         expanded = false
                     })
                 )
@@ -313,7 +314,11 @@ fun FansClubInfoContent(
             Button(
                 onClick = {
                     keyboardController?.hide()
-                    if (isQuerying) onStopQuery() else onExecuteQuery()
+                    if (isQuerying) {
+                        onStopQuery()
+                    } else {
+                        onExecuteQuery()
+                    }
                 }, modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
@@ -355,32 +360,29 @@ fun UserInfoItem(item: UiUserInfoItem) {
     if (item.nickname != null) {
         Card(
             modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
-                containerColor = if (item.skinBgUrl.isNullOrEmpty()) Color.Gray.copy(0.5f) else Color.Transparent
+                containerColor = Color.Transparent
             )
         ) {
             Box {
+                val imageLoader = ImageLoader.Builder(context).components {
+                    if (Build.VERSION.SDK_INT >= 28) {
+                        add(ImageDecoderDecoder.Factory())
+                    } else {
+                        add(GifDecoder.Factory())
+                    }
+                }.build()
 
-                item.skinBgUrl?.let {
-                    val imageLoader = ImageLoader.Builder(context).components {
-                        if (Build.VERSION.SDK_INT >= 28) {
-                            add(ImageDecoderDecoder.Factory())
-                        } else {
-                            add(GifDecoder.Factory())
-                        }
-                    }.build()
-
-                    AsyncImage(
-                        model = it,
-                        imageLoader = imageLoader,
-                        contentDescription = "Background Image",
-                        modifier = Modifier.matchParentSize(),
-                        contentScale = ContentScale.FillBounds
-                    )
-                }
+                AsyncImage(
+                    model = item.skinBgUrl ?: R.drawable.default_bg,
+                    imageLoader = imageLoader,
+                    contentDescription = "Background Image",
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.FillBounds
+                )
 
                 Row(
                     modifier = Modifier
-                        .background(Color.Black.copy(alpha = 0.2f))
+                        .background(Color.Black.copy(alpha = 0.3f))
                         .padding(8.dp)
                         .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -472,50 +474,60 @@ fun UserInfoItem(item: UiUserInfoItem) {
 
 @Composable
 private fun FansClubItemRow(item: UiFansClubItem) {
-    Row(
+    Card(
         modifier = Modifier
-            .padding(horizontal = 8.dp, vertical = 4.dp)
             .fillMaxWidth()
-            .height(28.dp), verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = item.nickname ?: "N/FansClubInfoBean",
-            modifier = Modifier
-                .weight(1f)
-                .basicMarquee(1),
-            maxLines = 1,
+            .padding(bottom = 2.dp), colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary
         )
-
-        Box(modifier = Modifier.width(48.dp), contentAlignment = Alignment.Center) {
-
-            AsyncImage(
-                model = item.levelUrl, contentDescription = "Level", contentScale = ContentScale.Fit
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .fillMaxWidth()
+                .height(28.dp), verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = item.nickname ?: "N/FansClubInfoBean",
+                modifier = Modifier
+                    .weight(1f)
+                    .basicMarquee(1),
+                maxLines = 1,
             )
 
-            if (0 != item.state) {
-                item.level?.let {
-                    Text(
-                        text = it,
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp,
-                        color = when (item.state) {
-                            1 -> Color.White
-                            2 -> Color.Black.copy(0.7f)
-                            else -> MaterialTheme.colorScheme.onSurface
-                        }
-                    )
+            Box(modifier = Modifier.width(48.dp), contentAlignment = Alignment.Center) {
+
+                AsyncImage(
+                    model = item.levelUrl,
+                    contentDescription = "Level",
+                    contentScale = ContentScale.Fit
+                )
+
+                if (0 != item.state) {
+                    item.level?.let {
+                        Text(
+                            text = it,
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp,
+                            color = when (item.state) {
+                                1 -> Color.White
+                                2 -> Color.Black.copy(0.7f)
+                                else -> MaterialTheme.colorScheme.onSurface
+                            }
+                        )
+                    }
                 }
             }
+
+            Spacer(modifier = Modifier.width(2.dp))
+
+            AsyncImage(
+                modifier = Modifier.width(28.dp),
+                model = item.vipUrl,
+                contentDescription = "Vip",
+                contentScale = ContentScale.Fit,
+            )
         }
-
-        Spacer(modifier = Modifier.width(2.dp))
-
-        AsyncImage(
-            modifier = Modifier.width(28.dp),
-            model = item.vipUrl,
-            contentDescription = "Vip",
-            contentScale = ContentScale.Fit,
-        )
     }
 }

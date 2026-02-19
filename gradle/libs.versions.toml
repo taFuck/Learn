@@ -1,5 +1,6 @@
 [versions]
 agp = "9.0.1"
+crashreport = "4.1.9.3"
 kotlin = "2.3.10"
 coreKtx = "1.17.0"
 junit = "4.13.2"
@@ -29,6 +30,7 @@ uiGraphics = "1.10.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+crashreport = { module = "com.tencent.bugly:crashreport", version.ref = "crashreport" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

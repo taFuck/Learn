@@ -12,6 +12,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.tencent.mmkv.MMKV
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -35,9 +36,25 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+object ThemeManager {
+    private const val KEY_THEME_MODE = "key_theme_mode"
+
+    private val mmkv: MMKV by lazy {
+        MMKV.defaultMMKV()
+    }
+
+    fun saveThemeMode(isDark: Boolean) {
+        mmkv.encode(KEY_THEME_MODE, isDark)
+    }
+
+    fun getThemeMode(systemIsDark: Boolean): Boolean {
+        return mmkv.decodeBool(KEY_THEME_MODE, systemIsDark)
+    }
+}
+
 @Composable
 fun DouyinToolTheme(
-    darkTheme: Boolean = true,
+    darkTheme: Boolean = ThemeManager.getThemeMode(true),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
