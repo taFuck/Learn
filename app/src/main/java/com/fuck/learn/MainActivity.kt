@@ -60,7 +60,9 @@ import com.fuck.learn.ui.activity.live.QueryLivePeopleActivity
 import com.fuck.learn.ui.components.CircularReveal
 import com.fuck.learn.ui.theme.DouyinToolTheme
 import com.fuck.learn.ui.theme.ThemeManager
+import com.fuck.learn.utils.AnimationScaleUtil
 import com.fuck.learn.utils.DouyinParamUtils
+import com.fuck.learn.utils.LogUtils
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,10 +78,11 @@ class MainActivity : ComponentActivity() {
             var targetTheme by remember { mutableStateOf<Boolean?>(null) }
             var iconButtonCenter by remember { mutableStateOf(Offset.Zero) }
 
-            // This effect handles the synchronization to prevent flicker
             LaunchedEffect(darkTheme) {
+                val durationScale = AnimationScaleUtil.getDurationScale()
+                LogUtils.e(durationScale.toString())
                 if (darkTheme == targetTheme) {
-                    delay(100) // Wait to ensure the new theme is drawn
+                    delay((150 * durationScale).toLong())
                     targetTheme = null
                 }
             }
@@ -89,7 +92,7 @@ class MainActivity : ComponentActivity() {
                     MainScreenUI(
                         darkTheme = darkTheme,
                         onThemeToggle = { center ->
-                            if (targetTheme == null) { // Only start if idle
+                            if (targetTheme == null) {
                                 iconButtonCenter = center
                                 targetTheme = !darkTheme
                             }
@@ -102,20 +105,17 @@ class MainActivity : ComponentActivity() {
                         targetState = true,
                         center = iconButtonCenter,
                         onFinish = {
-                            // Animation finished, update the base theme.
                             darkTheme = isDark
                             ThemeManager.saveThemeMode(isDark)
-                            // The LaunchedEffect will handle removing this composable.
                         }
                     ) {
                         DouyinToolTheme(darkTheme = isDark) {
                             MainScreenUI(
                                 darkTheme = isDark,
-                                onThemeToggle = { /* Do nothing during animation */ }
+                                onThemeToggle = {}
                             )
                         }
                     }
-                    // Mask to prevent clicks during transition
                     Box(
                         modifier = Modifier
                             .fillMaxSize()

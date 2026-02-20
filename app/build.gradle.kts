@@ -1,3 +1,5 @@
+import com.android.build.api.artifact.SingleArtifact
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -28,8 +30,7 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
         debug {
@@ -80,7 +81,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // 添加网络和加密依赖
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.logging)
@@ -102,4 +102,32 @@ dependencies {
 
     implementation(libs.reorderable)
 
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        val variantName = variant.name.replaceFirstChar { it.uppercase() }
+
+        val versionNameProvider = variant.outputs.first().versionName
+        val vName = versionNameProvider.getOrElse("1.0")
+
+        val projectName = rootProject.name
+
+        val copyAndRenameApkTask = tasks.register<Copy>("copyAndRename${variantName}Apk") {
+            group = "custom build"
+
+            val apkDir = variant.artifacts.get(SingleArtifact.APK)
+            from(apkDir)
+            include("**/*.apk")
+            into(layout.projectDirectory.dir("releases/${vName}"))
+
+            rename { originalFileName ->
+                "${projectName}-v${vName}.apk"
+            }
+        }
+
+        project.tasks.matching { it.name == "assemble$variantName" }.configureEach {
+            finalizedBy(copyAndRenameApkTask)
+        }
+    }
 }

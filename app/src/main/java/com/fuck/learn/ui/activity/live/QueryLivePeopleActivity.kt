@@ -237,10 +237,10 @@ class QueryLivePeopleActivity : ComponentActivity() {
 private fun LivePeopleScreen(
     modifier: Modifier, liveRankItems: List<LiveRankItem>
 ) {
-    LazyColumn(modifier = modifier.padding(horizontal = 16.dp)) {
+    LazyColumn {
         items(
             items = liveRankItems,
-            contentType = { "liveRankItems" } // All items are of the same type
+            contentType = { "liveRankItems" }
         ) { item ->
             val isInitial = remember { mutableStateOf(true) }
             val color = remember { Animatable(Color.Transparent) }
@@ -259,10 +259,10 @@ private fun LivePeopleScreen(
             }
 
             Row(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxWidth()
                     .background(color.value)
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 8.dp,horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
