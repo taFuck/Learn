@@ -30,7 +30,9 @@ class AddLiveStreamerViewModel(application: Application) : AndroidViewModel(appl
         groupDao.getAllGroups().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val mmkv = MMKV.defaultMMKV()
-    private val KEY_SELECTED_GROUP_ID = "add_streamer_selected_group_id"
+    companion object{
+        private const val KEY_SELECTED_GROUP_ID = "add_streamer_selected_group_id"
+    }
 
     private val _selectedGroupId = MutableStateFlow(mmkv.decodeLong(KEY_SELECTED_GROUP_ID, 1L))
     val selectedGroupId: StateFlow<Long> = _selectedGroupId.asStateFlow()
