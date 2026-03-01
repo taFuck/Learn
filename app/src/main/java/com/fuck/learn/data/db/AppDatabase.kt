@@ -7,11 +7,12 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [StreamerForLive::class, StreamerForFansClub::class, HistoryForFansClub::class], version = 6, exportSchema = false)
+@Database(entities = [StreamerForLive::class, StreamerForFansClub::class, HistoryForFansClub::class, StreamerGroup::class], version = 7, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun streamerForLiveDao(): StreamerForLiveDao
     abstract fun streamerForFansClubDao(): StreamerForFansClubDao
     abstract fun historyForFansClubDao(): HistoryForFansClubDao
+    abstract fun streamerGroupDao(): StreamerGroupDao
 
     companion object {
         @Volatile
@@ -24,7 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "streamer_database"
                 )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 .build()
                 INSTANCE = instance
                 instance
@@ -58,6 +59,23 @@ abstract class AppDatabase : RoomDatabase() {
         private val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("CREATE TABLE IF NOT EXISTS `streamer_for_live` (`uid` TEXT NOT NULL, `secUid` TEXT NOT NULL, `nickname` TEXT NOT NULL, `avatarUrl` TEXT NOT NULL, `webRids` TEXT NOT NULL, `displayOrder` INTEGER NOT NULL, PRIMARY KEY(`uid`))")
+            }
+        }
+
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+
+                db.execSQL("CREATE TABLE IF NOT EXISTS `streamer_group` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `displayOrder` INTEGER NOT NULL)")
+
+                val cursor = db.query("SELECT COUNT(*) FROM streamer_for_fan_club")
+                cursor.moveToFirst()
+                val count = cursor.getInt(0)
+                cursor.close()
+                if (count > 0) {
+                    db.execSQL("INSERT INTO `streamer_group` (`name`, `displayOrder`) VALUES ('List1', 0)")
+                }
+
+                db.execSQL("ALTER TABLE streamer_for_fan_club ADD COLUMN groupId INTEGER NOT NULL DEFAULT 1")
             }
         }
     }

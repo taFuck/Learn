@@ -9,5 +9,6 @@ data class StreamerForFansClub(
     val secUid: String,
     val nickname: String,
     val avatarUrl: String,
-    val displayOrder: Int
+    val displayOrder: Int,
+    val groupId: Long = 1
 )

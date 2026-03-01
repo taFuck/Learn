@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,17 +24,25 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,6 +79,28 @@ class AddLiveStreamerActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             DouyinToolTheme {
+                var menuExpanded by remember { mutableStateOf(false) }
+                var showAddGroupDialog by remember { mutableStateOf(false) }
+                var showRenameGroupDialog by remember { mutableStateOf(false) }
+                var showDeleteGroupDialog by remember { mutableStateOf(false) }
+                var deleteTargetGroupId by remember { mutableStateOf(0L) }
+                var renameTargetGroupId by remember { mutableStateOf(0L) }
+                var renameTargetGroupName by remember { mutableStateOf("") }
+                val groups by viewModel.groups.collectAsState()
+                val selectedGroupId by viewModel.selectedGroupId.collectAsState()
+
+                LaunchedEffect(Unit) {
+                    if (viewModel.shouldShowInitialGroupDialog()) {
+                        showAddGroupDialog = true
+                    }
+                }
+
+                LaunchedEffect(groups) {
+                    if (groups.isNotEmpty() && selectedGroupId == 1L) {
+                        viewModel.selectGroup(groups.first().id)
+                    }
+                }
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
@@ -82,6 +114,88 @@ class AddLiveStreamerActivity : ComponentActivity() {
                                             contentDescription = stringResource(R.string.content_description_back)
                                         )
                                     }
+                                },
+                                actions = {
+                                    IconButton(onClick = { menuExpanded = true }) {
+                                        Icon(
+                                            imageVector = Icons.Default.MoreVert,
+                                            contentDescription = "More options"
+                                        )
+                                    }
+                                    DropdownMenu(
+                                        expanded = menuExpanded,
+                                        onDismissRequest = { menuExpanded = false }
+                                    ) {
+                                        groups.forEach { group ->
+                                            val isSelected = group.id == selectedGroupId
+                                            DropdownMenuItem(
+                                                modifier = if (isSelected) Modifier.background(
+                                                    MaterialTheme.colorScheme.primaryContainer
+                                                ) else Modifier,
+                                                text = { Text(text = group.name) },
+                                                trailingIcon = {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        IconButton(
+                                                            onClick = {
+                                                                menuExpanded = false
+                                                                renameTargetGroupId = group.id
+                                                                renameTargetGroupName = group.name
+                                                                showRenameGroupDialog = true
+                                                            },
+                                                            modifier = Modifier.size(24.dp)
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Edit,
+                                                                contentDescription = "Rename",
+                                                                modifier = Modifier.size(18.dp),
+                                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                            )
+                                                        }
+                                                        Spacer(modifier = Modifier.width(4.dp))
+                                                        IconButton(
+                                                            onClick = {
+                                                                menuExpanded = false
+                                                                deleteTargetGroupId = group.id
+                                                                showDeleteGroupDialog = true
+                                                            },
+                                                            modifier = Modifier.size(24.dp)
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Delete,
+                                                                contentDescription = "Delete",
+                                                                modifier = Modifier.size(18.dp),
+                                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                            )
+                                                        }
+                                                    }
+                                                },
+                                                onClick = {
+                                                    viewModel.selectGroup(group.id)
+                                                    menuExpanded = false
+                                                }
+                                            )
+                                        }
+                                        if (groups.isNotEmpty()) {
+                                            HorizontalDivider()
+                                        }
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.End
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Add,
+                                                        contentDescription = "Add group",
+                                                    )
+                                                }
+                                            },
+                                            onClick = {
+                                                menuExpanded = false
+                                                showAddGroupDialog = true
+                                            }
+                                        )
+                                    }
                                 }
                             )
                             HorizontalDivider()
@@ -92,9 +206,108 @@ class AddLiveStreamerActivity : ComponentActivity() {
                         viewModel = viewModel
                     )
                 }
+
+                if (showAddGroupDialog) {
+                    val scope = rememberCoroutineScope()
+                    AddGroupDialog(
+                        title = "New Group",
+                        initialName = "",
+                        cancelable = groups.isNotEmpty(),
+                        onDismiss = { showAddGroupDialog = false },
+                        onConfirm = { name ->
+                            scope.launch {
+                                if (viewModel.addGroup(name)) {
+                                    showAddGroupDialog = false
+                                } else {
+                                    Toast.makeText(this@AddLiveStreamerActivity, "Group name already exists", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    )
+                }
+
+                if (showRenameGroupDialog) {
+                    val scope = rememberCoroutineScope()
+                    AddGroupDialog(
+                        title = "Rename Group",
+                        initialName = renameTargetGroupName,
+                        onDismiss = { showRenameGroupDialog = false },
+                        onConfirm = { name ->
+                            scope.launch {
+                                if (viewModel.renameGroup(renameTargetGroupId, name)) {
+                                    showRenameGroupDialog = false
+                                } else {
+                                    Toast.makeText(this@AddLiveStreamerActivity, "Group name already exists", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    )
+                }
+
+                if (showDeleteGroupDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showDeleteGroupDialog = false },
+                        title = { Text("Delete Group") },
+                        text = { Text("Are you sure delete this group?") },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                viewModel.deleteGroup(deleteTargetGroupId)
+                                showDeleteGroupDialog = false
+                                if (groups.size == 1) {
+                                    showAddGroupDialog = true
+                                }
+                            }) {
+                                Text("Delete")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showDeleteGroupDialog = false }) {
+                                Text("Cancel")
+                            }
+                        }
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+fun AddGroupDialog(
+    title: String,
+    initialName: String,
+    cancelable: Boolean = true,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var groupName by remember { mutableStateOf(initialName) }
+    AlertDialog(
+        onDismissRequest = { if (cancelable) onDismiss() },
+        title = { Text(title) },
+        text = {
+            OutlinedTextField(
+                value = groupName,
+                onValueChange = { groupName = it },
+                label = { Text("Group Name") },
+                singleLine = true
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(groupName) },
+                enabled = groupName.isNotBlank()
+            ) {
+                Text("OK")
+            }
+        },
+        dismissButton = if (cancelable) {
+            {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            }
+        } else null
+    )
 }
 
 @Composable

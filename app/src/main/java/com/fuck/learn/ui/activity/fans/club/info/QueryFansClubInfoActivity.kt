@@ -32,10 +32,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -100,7 +103,12 @@ class QueryFansClubInfoActivity : ComponentActivity() {
         setContent {
             val context = LocalContext.current
             val fansClubUiState by viewModel.fansClubUiState.collectAsState()
+            val groups by viewModel.groups.collectAsState()
+            val selectedGroupIds by viewModel.selectedGroupIds.collectAsState()
+            val isAllSelected by viewModel.isAllSelected.collectAsState()
+            
             var currentTime by remember { mutableStateOf("") }
+            var filterMenuExpanded by remember { mutableStateOf(false) }
             val lazyListState = rememberLazyListState()
 
             LaunchedEffect(true) {
@@ -138,6 +146,49 @@ class QueryFansClubInfoActivity : ComponentActivity() {
                                             imageVector = Icons.Default.Person,
                                             contentDescription = stringResource(R.string.add_live_steamer_label)
                                         )
+                                    }
+                                    
+                                    Box {
+                                        IconButton(onClick = { filterMenuExpanded = true }) {
+                                            Icon(
+                                                imageVector = Icons.Default.MoreVert,
+                                                contentDescription = "Filter Groups"
+                                            )
+                                        }
+                                        DropdownMenu(
+                                            expanded = filterMenuExpanded,
+                                            onDismissRequest = { filterMenuExpanded = false }
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = { 
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Text("All", Modifier.weight(1f))
+                                                        Spacer(Modifier.width(8.dp))
+                                                        Checkbox(
+                                                            checked = isAllSelected,
+                                                            onCheckedChange = null
+                                                        )
+                                                    }
+                                                },
+                                                onClick = { viewModel.selectAllGroups() }
+                                            )
+                                            
+                                            groups.forEach { group ->
+                                                DropdownMenuItem(
+                                                    text = {
+                                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                                            Text(group.name, Modifier.weight(1f))
+                                                            Spacer(Modifier.width(8.dp))
+                                                            Checkbox(
+                                                                checked = selectedGroupIds.contains(group.id),
+                                                                onCheckedChange = null
+                                                            )
+                                                        }
+                                                    },
+                                                    onClick = { viewModel.toggleGroupSelection(group.id) }
+                                                )
+                                            }
+                                        }
                                     }
                                 })
 

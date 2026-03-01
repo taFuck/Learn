@@ -16,13 +16,13 @@ android {
         applicationId = "com.fuck.learn"
         minSdk = 26
         targetSdk = 36
-        versionCode = 20001
-        versionName = "2.0.1"
+        versionCode = 21000
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
-            abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+            abiFilters.addAll(listOf("arm64-v8a"))
         }
     }
 

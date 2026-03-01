@@ -7,26 +7,87 @@ import com.fuck.learn.R
 import com.fuck.learn.api.RetrofitClient
 import com.fuck.learn.data.db.AppDatabase
 import com.fuck.learn.data.db.StreamerForFansClub
+import com.fuck.learn.data.db.StreamerGroup
 import com.fuck.learn.utils.DouyinParamUtils
 import com.fuck.learn.utils.DouyinUrlUtils
+import com.tencent.mmkv.MMKV
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class AddLiveStreamerViewModel(application: Application) : AndroidViewModel(application) {
 
     private val streamerDao = AppDatabase.getDatabase(application).streamerForFansClubDao()
+    private val groupDao = AppDatabase.getDatabase(application).streamerGroupDao()
+
+    val groups: StateFlow<List<StreamerGroup>> =
+        groupDao.getAllGroups().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    private val mmkv = MMKV.defaultMMKV()
+    private val KEY_SELECTED_GROUP_ID = "add_streamer_selected_group_id"
+
+    private val _selectedGroupId = MutableStateFlow(mmkv.decodeLong(KEY_SELECTED_GROUP_ID, 1L))
+    val selectedGroupId: StateFlow<Long> = _selectedGroupId.asStateFlow()
 
     val streamers: StateFlow<List<StreamerForFansClub>> =
-        streamerDao.getAllStreamers().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        _selectedGroupId.flatMapLatest { groupId ->
+            streamerDao.getStreamersByGroup(groupId)
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _addLiveStreamerUiState =
         MutableStateFlow<AddLiveStreamerUiState>(AddLiveStreamerUiState.Initial)
     val addLiveStreamerUiState: StateFlow<AddLiveStreamerUiState> =
         _addLiveStreamerUiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            selectedGroupId.collect { id ->
+                mmkv.encode(KEY_SELECTED_GROUP_ID, id)
+            }
+        }
+    }
+
+    fun selectGroup(groupId: Long) {
+        _selectedGroupId.value = groupId
+    }
+
+    suspend fun addGroup(name: String): Boolean {
+        if (groupDao.isGroupNameExists(name) > 0) return false
+        val maxOrder = groups.value.maxOfOrNull { it.displayOrder } ?: 0
+        val id = groupDao.insert(StreamerGroup(name = name, displayOrder = maxOrder + 1))
+        _selectedGroupId.value = id
+        return true
+    }
+
+    suspend fun renameGroup(groupId: Long, newName: String): Boolean {
+        if (groupDao.isGroupNameExists(newName) > 0) return false
+        groupDao.renameGroup(groupId, newName)
+        return true
+    }
+
+    fun deleteGroup(groupId: Long) {
+        viewModelScope.launch {
+            groupDao.deleteGroup(groupId)
+            streamerDao.deleteStreamersByGroup(groupId)
+
+            if (_selectedGroupId.value == groupId) {
+                val remaining = groups.value.filter { it.id != groupId }
+                if (remaining.isNotEmpty()) {
+                    _selectedGroupId.value = remaining.first().id
+                }
+            }
+        }
+    }
+
+    suspend fun shouldShowInitialGroupDialog(): Boolean {
+        return groupDao.getGroupCount() == 0
+    }
 
     fun fetchUserProfile(input: String) {
         viewModelScope.launch {
@@ -67,7 +128,8 @@ class AddLiveStreamerViewModel(application: Application) : AndroidViewModel(appl
                         secUid = secUid,
                         nickname = nickname,
                         avatarUrl = avatarUrl?.replace("\u002F", "/") ?: "",
-                        displayOrder = maxOrder + 1
+                        displayOrder = maxOrder + 1,
+                        groupId = _selectedGroupId.value
                     )
 
                     val rowId = streamerDao.insert(streamerForFansClub)
@@ -97,7 +159,6 @@ class AddLiveStreamerViewModel(application: Application) : AndroidViewModel(appl
             val updatedStreamers = reorderedStreamerForFansClubs.mapIndexed { index, streamer ->
                 streamer.copy(displayOrder = index)
             }
-//            Log.e("SJ", "updateStreamerOrder")
             streamerDao.update(updatedStreamers)
         }
     }

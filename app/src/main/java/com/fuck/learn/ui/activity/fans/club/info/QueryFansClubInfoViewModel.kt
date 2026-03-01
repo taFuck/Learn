@@ -8,9 +8,11 @@ import com.fuck.learn.api.RetrofitClient
 import com.fuck.learn.data.db.AppDatabase
 import com.fuck.learn.data.db.HistoryForFansClub
 import com.fuck.learn.data.db.StreamerForFansClub
+import com.fuck.learn.data.db.StreamerGroup
 import com.fuck.learn.utils.DouyinParamUtils
 import com.fuck.learn.utils.DouyinUrlUtils
 import com.fuck.learn.utils.LogUtils
+import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,11 +54,26 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
     private val db = AppDatabase.getDatabase(application)
     private val streamerDao = db.streamerForFansClubDao()
     private val historyDao = db.historyForFansClubDao()
+    private val groupDao = db.streamerGroupDao()
 
     val streamers: StateFlow<List<StreamerForFansClub>> =
         streamerDao.getAllStreamers().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     val history: StateFlow<List<HistoryForFansClub>> =
         historyDao.getHistory().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val groups: StateFlow<List<StreamerGroup>> =
+        groupDao.getAllGroups().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    private val mmkv = MMKV.defaultMMKV()
+    companion object {
+        private const val KEY_SELECTED_GROUP_IDS = "selected_group_ids"
+        private const val KEY_IS_ALL_SELECTED = "is_all_selected"
+    }
+
+    private val _selectedGroupIds = MutableStateFlow<Set<Long>>(emptySet())
+    val selectedGroupIds = _selectedGroupIds.asStateFlow()
+
+    private val _isAllSelected = MutableStateFlow(true)
+    val isAllSelected = _isAllSelected.asStateFlow()
 
     private val _secUid = MutableStateFlow("")
     val secUid = _secUid.asStateFlow()
@@ -80,16 +97,59 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
     val fansClubUiState: StateFlow<FansClubUiState> = _fansClubUiState.asStateFlow()
 
     init {
-//        viewModelScope.launch {
-//            history.collect()
-//        }
+        _isAllSelected.value = mmkv.decodeBool(KEY_IS_ALL_SELECTED, true)
+        val savedIds = mmkv.decodeStringSet(KEY_SELECTED_GROUP_IDS)
+        if (savedIds != null) {
+            _selectedGroupIds.value = savedIds.mapNotNull { it.toLongOrNull() }.toSet()
+        }
+
         viewModelScope.launch {
             streamers.collect()
+        }
+        viewModelScope.launch {
+            groups.collect { groupList ->
+                if (_isAllSelected.value) {
+                    _selectedGroupIds.value = groupList.map { it.id }.toSet()
+                }
+            }
+        }
+        viewModelScope.launch {
+            selectedGroupIds.collect { ids ->
+                mmkv.encode(KEY_SELECTED_GROUP_IDS, ids.map { it.toString() }.toSet())
+            }
+        }
+        viewModelScope.launch {
+            isAllSelected.collect { all ->
+                mmkv.encode(KEY_IS_ALL_SELECTED, all)
+            }
         }
     }
 
     fun onSecUidChange(newSecUid: String) {
         _secUid.value = newSecUid
+    }
+
+    fun toggleGroupSelection(groupId: Long) {
+        val currentSelected = _selectedGroupIds.value.toMutableSet()
+        if (currentSelected.contains(groupId)) {
+            currentSelected.remove(groupId)
+        } else {
+            currentSelected.add(groupId)
+        }
+        _selectedGroupIds.value = currentSelected
+
+        val allGroupIds = groups.value.map { it.id }.toSet()
+        _isAllSelected.value = currentSelected.containsAll(allGroupIds) && currentSelected.isNotEmpty()
+    }
+
+    fun selectAllGroups() {
+        val allSelected = !_isAllSelected.value
+        _isAllSelected.value = allSelected
+        if (allSelected) {
+            _selectedGroupIds.value = groups.value.map { it.id }.toSet()
+        } else {
+            _selectedGroupIds.value = emptySet()
+        }
     }
 
     fun executeQuery() {
@@ -125,7 +185,14 @@ class QueryFansClubInfoViewModel(application: Application) : AndroidViewModel(ap
                 val ip = ipRegex.find(body)?.groups?.get(1)?.value
 
                 val resultList = mutableListOf<UiFansClubItem>()
-                streamers.value.forEach {
+
+                val filteredStreamers = if (_isAllSelected.value) {
+                    streamers.value
+                } else {
+                    streamers.value.filter { _selectedGroupIds.value.contains(it.groupId) }
+                }
+
+                filteredStreamers.forEach {
                     val response = RetrofitClient.apiService.getFansClubInfo(
                         cookie = DouyinParamUtils.getCookie(),
                         sec_anchor_id = it.secUid,
